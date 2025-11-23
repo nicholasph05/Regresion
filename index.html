@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Predicción Victoria Local Fútbol</title>
+  <title>Predicción OVER 2.5 goles</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -77,24 +77,31 @@
       border-radius: 10px;
       font-size: 16px;
     }
+
+    .nota {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h2>Predicción Victoria Local</h2>
-  <p>Regresión logística – Selecciones de fútbol</p>
+  <h2>Predicción OVER 2.5 goles</h2>
+  <p>Regresión logística con resultados de selecciones.</p>
 
   <input type="number" id="year" placeholder="Año del partido (ej: 2022)">
 
   <select id="neutral">
-    <option value="">Seleccione Campo</option>
-    <option value="0">Local (no neutral)</option>
-    <option value="1">Campo neutral</option>
+    <option value="">Campo neutral</option>
+    <option value="0">No (hay local)</option>
+    <option value="1">Sí (campo neutral)</option>
   </select>
 
   <select id="worldcup">
-    <option value="">¿Es Mundial?</option>
+    <option value="">¿Es partido de Mundial?</option>
     <option value="0">No</option>
     <option value="1">Sí</option>
   </select>
@@ -110,22 +117,29 @@
   <div id="resultado" class="resultado">
     Ingrese los datos y presione "Calcular".
   </div>
+
+  <div class="nota">
+    <strong>Interpretación:</strong><br>
+    El modelo estima la probabilidad de que el partido tenga
+    <strong>3 o más goles en total</strong> (OVER 2.5), en función del año,
+    si es campo neutral y el tipo de torneo (Mundial / amistoso).
+  </div>
 </div>
 
 <script>
-  // Coeficientes de tu modelo
-  // h(x) = 3.88727
-  //        + (-0.0018948)*year
-  //        + (-0.2915699)*neutral
-  //        + (-0.06732122)*is_world_cup
-  //        + (-0.18446308)*is_friendly
+  // Coeficientes del modelo OVER 2.5 goles
+  // h(x) = 22.99258
+  //        + (-0.01146466)*year
+  //        + (0.07647748)*neutral
+  //        + (-0.120418)*is_world_cup
+  //        + (-0.1382506)*is_friendly
   const COEFS = [
-    -0.0018948,   // year
-    -0.2915699,   // neutral
-    -0.06732122,  // is_world_cup
-    -0.18446308   // is_friendly
+    -0.01146466,  // year
+     0.07647748,  // neutral
+    -0.120418,    // is_world_cup
+    -0.1382506    // is_friendly
   ];
-  const INTERCEPT = 3.887274860620502;
+  const INTERCEPT = 22.992580995170563;
 
   function logistic(z) {
     return 1 / (1 + Math.exp(-z));
@@ -156,12 +170,15 @@
       COEFS[3] * friendly;
 
     const prob = logistic(z);
-    const pred = prob >= 0.5 ? 1 : 0; // 1 = victoria local
+    const pred = prob >= 0.5 ? 1 : 0; // 1 = OVER 2.5, 0 = UNDER 2.5
 
     document.getElementById("resultado").innerHTML =
-      `<b>Predicción:</b> ${pred} ` +
-      (pred === 1 ? "(Victoria local)" : "(No victoria: empate o derrota)") +
-      `<br><b>Probabilidad de victoria local:</b> ${(prob * 100).toFixed(2)}%`;
+      `<b>h(x):</b> ${z.toFixed(4)}<br>` +
+      `<b>Probabilidad de OVER 2.5 goles:</b> ${(prob * 100).toFixed(2)}%<br>` +
+      `<b>Predicción binaria:</b> ${pred} ` +
+      (pred === 1
+        ? "(partido con 3 o más goles)"
+        : "(partido con 0, 1 o 2 goles)");
   }
 </script>
 
