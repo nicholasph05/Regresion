@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Predicción Victoria Local Fútbol</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .card {
+      background-color: white;
+      width: 380px;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .card p {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 16px;
+      background-color: #f9fafb;
+      outline: none;
+    }
+
+    select:focus, input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
+      background-color: #ffffff;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005fcc;
+    }
+
+    .resultado {
+      margin-top: 20px;
+      padding: 12px;
+      background: #f1f5f9;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Predicción Victoria Local</h2>
+  <p>Regresión logística – Selecciones de fútbol</p>
+
+  <input type="number" id="year" placeholder="Año del partido (ej: 2022)">
+
+  <select id="neutral">
+    <option value="">Seleccione Campo</option>
+    <option value="0">Local (no neutral)</option>
+    <option value="1">Campo neutral</option>
+  </select>
+
+  <select id="worldcup">
+    <option value="">¿Es Mundial?</option>
+    <option value="0">No</option>
+    <option value="1">Sí</option>
+  </select>
+
+  <select id="friendly">
+    <option value="">¿Es amistoso?</option>
+    <option value="0">No</option>
+    <option value="1">Sí</option>
+  </select>
+
+  <button onclick="calcular()">Calcular</button>
+
+  <div id="resultado" class="resultado">
+    Ingrese los datos y presione "Calcular".
+  </div>
+</div>
+
+<script>
+  // Coeficientes de tu modelo
+  // h(x) = 3.88727
+  //        + (-0.0018948)*year
+  //        + (-0.2915699)*neutral
+  //        + (-0.06732122)*is_world_cup
+  //        + (-0.18446308)*is_friendly
+  const COEFS = [
+    -0.0018948,   // year
+    -0.2915699,   // neutral
+    -0.06732122,  // is_world_cup
+    -0.18446308   // is_friendly
+  ];
+  const INTERCEPT = 3.887274860620502;
+
+  function logistic(z) {
+    return 1 / (1 + Math.exp(-z));
+  }
+
+  function calcular() {
+    const year     = parseFloat(document.getElementById("year").value);
+    const neutral  = parseFloat(document.getElementById("neutral").value);
+    const worldcup = parseFloat(document.getElementById("worldcup").value);
+    const friendly = parseFloat(document.getElementById("friendly").value);
+
+    if (
+      Number.isNaN(year) ||
+      Number.isNaN(neutral) ||
+      Number.isNaN(worldcup) ||
+      Number.isNaN(friendly)
+    ) {
+      document.getElementById("resultado").innerHTML =
+        "⚠️ Complete todos los campos antes de calcular.";
+      return;
+    }
+
+    const z =
+      INTERCEPT +
+      COEFS[0] * year +
+      COEFS[1] * neutral +
+      COEFS[2] * worldcup +
+      COEFS[3] * friendly;
+
+    const prob = logistic(z);
+    const pred = prob >= 0.5 ? 1 : 0; // 1 = victoria local
+
+    document.getElementById("resultado").innerHTML =
+      `<b>Predicción:</b> ${pred} ` +
+      (pred === 1 ? "(Victoria local)" : "(No victoria: empate o derrota)") +
+      `<br><b>Probabilidad de victoria local:</b> ${(prob * 100).toFixed(2)}%`;
+  }
+</script>
+
+</body>
+</html>
